@@ -1,55 +1,59 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from "react-router-dom";
 
-import AppLayout from '../components/AppLayout'
-import DashboardLayout from '../components/layout/DashboardLayout'
-import DashboardPage from '../pages/DashboardPage'
-import ForbiddenPage from '../pages/ForbiddenPage'
-import LoginPage from '../pages/LoginPage'
-import AdminLoginPage from '../pages/AdminLoginPage'
-import TeacherLoginPage from '../pages/TeacherLoginPage'
-import StudentLoginPage from '../pages/StudentLoginPage'
-import StudentsPage from '../pages/dashboard/StudentsPage'
-import TeachersPage from '../pages/dashboard/TeachersPage'
-import CoursesPage from '../pages/dashboard/CoursesPage'
-import TeacherCoursesPage from '../pages/dashboard/TeacherCoursesPage'
-import { Authorize } from './Authorize'
-import { ProtectedRoute } from './ProtectedRoute'
+import AppLayout from "../components/AppLayout";
+import DashboardLayout from "../components/layout/DashboardLayout";
+import Home from "../pages/Home";
+import DashboardPage from "../pages/DashboardPage";
+import ForbiddenPage from "../pages/ForbiddenPage";
+import LoginPage from "../pages/LoginPage";
+import AdminLoginPage from "../pages/AdminLoginPage";
+import TeacherLoginPage from "../pages/TeacherLoginPage";
+import StudentLoginPage from "../pages/StudentLoginPage";
+import StudentsPage from "../pages/dashboard/StudentsPage";
+import TeachersPage from "../pages/dashboard/TeachersPage";
+import CoursesPage from "../pages/dashboard/CoursesPage";
+import TeacherCoursesPage from "../pages/dashboard/TeacherCoursesPage";
+import { Authorize } from "./Authorize";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <AppLayout />,
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <Home />,
       },
       {
-        path: 'login',
+        path: "login",
         element: <LoginPage />,
       },
       {
-        path: 'login/admin',
+        path: "login/admin",
         element: <AdminLoginPage />,
       },
       {
-        path: 'login/teacher',
+        path: "login/teacher",
         element: <TeacherLoginPage />,
       },
       {
-        path: 'login/student',
+        path: "login/student",
         element: <StudentLoginPage />,
       },
       {
-        path: '403',
+        path: "403",
         element: <ForbiddenPage />,
       },
       {
-        path: 'dashboard',
+        path: "dashboard",
         element: (
           <ProtectedRoute>
             <DashboardLayout>
-              <Authorize allowedRoles={['Admin', 'Teacher', 'Student']} allowedPermissions={['view-dashboard']}>
+              <Authorize
+                allowedRoles={["Admin", "Teacher", "Student"]}
+                allowedPermissions={["view-dashboard"]}
+              >
                 <DashboardPage />
               </Authorize>
             </DashboardLayout>
@@ -57,11 +61,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard/students',
+        path: "dashboard/students",
         element: (
           <ProtectedRoute>
             <DashboardLayout>
-              <Authorize allowedRoles={['Admin']} allowedPermissions={['manage-users']}>
+              <Authorize
+                allowedRoles={["Admin"]}
+                allowedPermissions={["manage-users"]}
+              >
                 <StudentsPage />
               </Authorize>
             </DashboardLayout>
@@ -69,11 +76,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard/teachers',
+        path: "dashboard/teachers",
         element: (
           <ProtectedRoute>
             <DashboardLayout>
-              <Authorize allowedRoles={['Admin']} allowedPermissions={['manage-users']}>
+              <Authorize
+                allowedRoles={["Admin"]}
+                allowedPermissions={["manage-users"]}
+              >
                 <TeachersPage />
               </Authorize>
             </DashboardLayout>
@@ -81,11 +91,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard/courses',
+        path: "dashboard/courses",
         element: (
           <ProtectedRoute>
             <DashboardLayout>
-              <Authorize allowedRoles={['Admin']} allowedPermissions={['manage-content']}>
+              <Authorize
+                allowedRoles={["Admin"]}
+                allowedPermissions={["manage-content"]}
+              >
                 <CoursesPage />
               </Authorize>
             </DashboardLayout>
@@ -93,11 +106,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'dashboard/my-courses',
+        path: "dashboard/my-courses",
         element: (
           <ProtectedRoute>
             <DashboardLayout>
-              <Authorize allowedRoles={['Teacher']}>
+              <Authorize allowedRoles={["Teacher"]}>
                 <TeacherCoursesPage />
               </Authorize>
             </DashboardLayout>
@@ -106,4 +119,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+]);

@@ -1,23 +1,27 @@
-import { FormEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { useLogin } from '../hooks/useLogin'
+import { useLogin } from "../hooks/useLogin";
 
 export default function StudentLoginPage() {
-  const navigate = useNavigate()
-  const loginMutation = useLogin()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const navigate = useNavigate();
+  const loginMutation = useLogin();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    await loginMutation.mutateAsync({ email, password, role: 'student' })
-    navigate('/dashboard', { replace: true })
+    await loginMutation.mutateAsync({ email, password, role: "student" });
+    navigate("/dashboard", { replace: true });
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10 lg:px-10" dir="rtl" lang="ar">
+    <main
+      className="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10 lg:px-10"
+      dir="rtl"
+      lang="ar"
+    >
       <div className="grid w-full gap-8 lg:grid-cols-2">
         <section className="space-y-5">
           <span className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-600">
@@ -62,7 +66,7 @@ export default function StudentLoginPage() {
             type="submit"
             disabled={loginMutation.isPending}
           >
-            {loginMutation.isPending ? 'جاري الدخول...' : 'تسجيل الدخول'}
+            {loginMutation.isPending ? "جاري الدخول..." : "تسجيل الدخول"}
           </button>
 
           {loginMutation.isError ? (
@@ -73,5 +77,5 @@ export default function StudentLoginPage() {
         </form>
       </div>
     </main>
-  )
+  );
 }
