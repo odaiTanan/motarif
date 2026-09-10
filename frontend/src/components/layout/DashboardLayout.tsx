@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react'
 
 import { useAuth } from '../../hooks/useAuth'
 import AdminSidebar from './AdminSidebar'
+import logo from '../../assets/logo.png'
 
 interface DashboardLayoutProps {
   children?: ReactNode
@@ -62,9 +63,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-sm font-semibold text-ink-900">{user?.name ?? 'زائر'}</p>
                   <p className="text-xs text-ink-400">{user?.email}</p>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-sm font-bold text-white shadow-lg shadow-blue-600/20">
-                  {user?.name?.charAt(0) ?? '؟'}
-                </div>
+                <img src={logo} alt="محترف" className="h-12 w-28 object-contain" />
               </div>
             </div>
           </header>

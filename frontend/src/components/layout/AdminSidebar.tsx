@@ -3,6 +3,7 @@ import { LayoutDashboard, BookOpen, GraduationCap, Users, LogOut } from 'lucide-
 
 import { useAuth } from '../../hooks/useAuth'
 import { useLogout } from '../../hooks/useLogout'
+import logo from '../../assets/logo.png'
 
 const navItems = [
   { to: '/dashboard', label: 'الرئيسية', icon: LayoutDashboard, end: true },
@@ -25,14 +26,8 @@ export default function AdminSidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-72 shrink-0 flex-col border-l border-slate-200 bg-white text-slate-900 shadow-[0_0_28px_rgba(15,23,42,0.06)]">
       {/* Logo / Brand */}
-      <div className="flex items-center gap-3 px-6 py-7">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/20">
-          <span className="text-lg font-black text-white">ن</span>
-        </div>
-        <div>
-          <p className="text-base font-bold tracking-tight">نجيز</p>
-          <p className="text-xs text-slate-500">منصة الأكاديمية</p>
-        </div>
+      <div className="border-b border-slate-100 px-5 py-5">
+        <img src={logo} alt="محترف - تعليم مهن وكورسات" className="h-24 w-full object-contain object-right" />
       </div>
 
       {/* Navigation */}
