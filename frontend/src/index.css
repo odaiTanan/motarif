@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-academy-50: #fef9ee;
-  --color-academy-100: #fdf0d4;
-  --color-academy-200: #fadea8;
-  --color-academy-300: #f7c571;
-  --color-academy-400: #f3a93b;
-  --color-academy-500: #f09018;
-  --color-academy-600: #e2740c;
-  --color-academy-700: #bc560b;
-  --color-academy-800: #974411;
-  --color-academy-900: #7a3912;
+  --color-academy-50: #eff6ff;
+  --color-academy-100: #dbeafe;
+  --color-academy-200: #bfdbfe;
+  --color-academy-300: #93c5fd;
+  --color-academy-400: #60a5fa;
+  --color-academy-500: #3b82f6;
+  --color-academy-600: #2563eb;
+  --color-academy-700: #1d4ed8;
+  --color-academy-800: #1e40af;
+  --color-academy-900: #1e3a8a;
 
-  --color-teal-academy-50: #effcf9;
-  --color-teal-academy-100: #cbf7f0;
-  --color-teal-academy-200: #99eee2;
-  --color-teal-academy-300: #5dddd0;
-  --color-teal-academy-400: #2bc6bb;
-  --color-teal-academy-500: #15a89e;
-  --color-teal-academy-600: #0e8680;
-  --color-teal-academy-700: #0f6b69;
-  --color-teal-academy-800: #105656;
-  --color-teal-academy-900: #114848;
+  --color-teal-academy-50: #eff6ff;
+  --color-teal-academy-100: #dbeafe;
+  --color-teal-academy-200: #bfdbfe;
+  --color-teal-academy-300: #93c5fd;
+  --color-teal-academy-400: #60a5fa;
+  --color-teal-academy-500: #3b82f6;
+  --color-teal-academy-600: #2563eb;
+  --color-teal-academy-700: #1d4ed8;
+  --color-teal-academy-800: #1e40af;
+  --color-teal-academy-900: #1e3a8a;
 
   --color-ink-50: #f6f7f9;
   --color-ink-100: #eceef2;
@@ -42,12 +42,9 @@
   --najiz-surface: #ffffff;
   --najiz-foreground: #1e293b;
   --najiz-muted: #64748b;
-  --najiz-accent: #f7a21b;
+  --najiz-accent: #2563eb;
   color: var(--najiz-foreground);
-  background:
-    radial-gradient(circle at top, rgba(247, 162, 27, 0.12), transparent 30%),
-    radial-gradient(circle at right, rgba(15, 118, 110, 0.12), transparent 28%),
-    linear-gradient(180deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%);
+  background: #f8fafc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -178,16 +175,8 @@ body {
 }
 
 /* ── Glassmorphism ── */
-.glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-.glass-dark {
-  background: rgba(19, 23, 33, 0.82);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
+.glass { background: #ffffff; }
+.glass-dark { background: #ffffff; }
 
 /* ── Premium card hover ── */
 .card-hover {
@@ -202,17 +191,12 @@ body {
 
 /* ── Gradient text ── */
 .gradient-text-academy {
-  background: linear-gradient(135deg, #f09018 0%, #e2740c 50%, #0e8680 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-academy-700);
 }
 
 /* ── Shimmer loading ── */
 .shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  background: #e2e8f0;
 }
 
 /* ── Smooth focus ring ── */
@@ -223,6 +207,6 @@ body {
 }
 .focus-ring:focus {
   outline: none;
-  border-color: var(--color-academy-400);
-  box-shadow: 0 0 0 4px rgba(240, 144, 24, 0.12);
+  border-color: var(--color-academy-500);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }

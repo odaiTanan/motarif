@@ -125,6 +125,7 @@ export interface CourseLectureRecord { id: number; title: string; description: s
 
 export interface CourseCategoryRecord { id: number; name: string; slug: string; description?: string | null; courses_count?: number }
 export interface CourseInstructorRecord { id: number; name: string; email: string; avatar_url: string | null }
+export interface CourseEnrollmentRecord { id: number; student_id: number; course_id: number; enrolled_at: string; completion_percentage: number; status: 'active' | 'completed' | 'dropped'; is_featured?: boolean; student: { id: number; name: string; email: string; avatar_url: string | null; academic_id: string | null; specialty: string | null } }
 
 export interface TrainingPlanRecord {
   id: number
@@ -285,6 +286,18 @@ export function uploadCourseThumbnail(id: number, file: File) {
   return axiosInstance.post<{ data: CourseRecord }>(`${API_ROUTES.MANAGEMENT.COURSES}/${id}/media`, formData).then((r) => r.data.data)
 }
 
+export function fetchCourseEnrollments(courseId: number) {
+  return axiosInstance.get<{ data: CourseEnrollmentRecord[] }>(`${API_ROUTES.MANAGEMENT.COURSES}/${courseId}/enrollments`).then((r) => r.data.data)
+}
+
+export function enrollStudent(courseId: number, studentId: number) {
+  return axiosInstance.post<{ data: CourseEnrollmentRecord }>(`${API_ROUTES.MANAGEMENT.COURSES}/${courseId}/enrollments`, { student_id: studentId }).then((r) => r.data.data)
+}
+
+export function unenrollStudent(courseId: number, studentId: number) {
+  return axiosInstance.delete(`${API_ROUTES.MANAGEMENT.COURSES}/${courseId}/enrollments/${studentId}`)
+}
+
 export function fetchCourseInstructors(categoryId?: number) {
   return axiosInstance.get<{ data: CourseInstructorRecord[] }>(API_ROUTES.MANAGEMENT.COURSE_INSTRUCTORS, { params: categoryId ? { category_id: categoryId } : {} }).then((r) => r.data.data)
 }
@@ -323,12 +336,27 @@ export function fetchLookups() {
   return axiosInstance.get<LookupsResponse>(API_ROUTES.MANAGEMENT.LOOKUPS).then((r) => r.data)
 }
 
+export interface DashboardStat { key: string; label: string; value: number | string; description: string }
+export interface DashboardStatsResponse { role: 'admin' | 'teacher' | 'student'; stats: DashboardStat[] }
+
+export function fetchDashboardStats() {
+  return axiosInstance.get<{ data: DashboardStatsResponse }>(API_ROUTES.DASHBOARD.STATS).then((r) => r.data.data)
+}
+
 export function fetchTeacherCourses() {
   return fetchPaginated<CourseRecord>(API_ROUTES.TEACHER.COURSES)
 }
 
 export function fetchTeacherCourse(id: number) {
   return axiosInstance.get<{ data: CourseRecord }>(API_ROUTES.TEACHER.COURSE(id)).then((r) => r.data.data)
+}
+
+export function fetchTeacherCourseEnrollments(id: number) {
+  return axiosInstance.get<{ data: CourseEnrollmentRecord[] }>(API_ROUTES.TEACHER.ENROLLMENTS(id)).then((r) => r.data.data)
+}
+
+export function setTeacherStudentFeatured(studentId: number, isFeatured: boolean) {
+  return axiosInstance.put(API_ROUTES.TEACHER.STUDENT_FEATURED(studentId), { is_featured: isFeatured })
 }
 
 export function uploadCourseMedia(id: number, file: File) {
@@ -341,6 +369,10 @@ export function createCourseContent(id: number, type: 'lessons' | 'workshops' | 
   return axiosInstance.post(API_ROUTES.TEACHER[type.toUpperCase() as 'LESSONS' | 'WORKSHOPS' | 'LECTURES'](id), payload)
 }
 
+export function updateCourseContent(id: number, type: 'lessons' | 'workshops' | 'lectures', contentId: number, payload: Record<string, unknown>) {
+  return axiosInstance.put(`${API_ROUTES.TEACHER[type.toUpperCase() as 'LESSONS' | 'WORKSHOPS' | 'LECTURES'](id)}/${contentId}`, payload)
+}
+
 export function deleteCourseContent(id: number, type: 'lessons' | 'workshops' | 'lectures', contentId: number) {
   return axiosInstance.delete(`${API_ROUTES.TEACHER[type.toUpperCase() as 'LESSONS' | 'WORKSHOPS' | 'LECTURES'](id)}/${contentId}`)
 }
@@ -350,3 +382,18 @@ export function uploadCourseContentMedia(courseId: number, type: 'lessons' | 'wo
   formData.append('file', file)
   return axiosInstance.post(API_ROUTES.TEACHER.CONTENT_MEDIA(courseId, type, contentId), formData).then((r) => r.data.data)
 }
+
+export interface StudentLecture { id: number; title: string; description: string | null; meeting_url: string | null; recording_url: string | null; scheduled_at: string | null; duration_minutes: number | null; status: string; attended_seconds: number; attended: boolean }
+export interface StudentWorkshop { id: number; title: string; description: string | null; image_url: string | null; scheduled_at: string | null; duration_minutes: number | null }
+export interface StudentCourse { id: number; title: string; description: string | null; thumbnail_url: string | null; category: { id: number; name: string } | null; instructor: { id: number; name: string; avatar_url: string | null } | null; lessons?: Array<{ id: number; title: string; description: string | null; video_url: string | null }>; lectures?: StudentLecture[]; workshops?: StudentWorkshop[] }
+export interface StudentEnrollment { enrollment_id: number; status: string; enrolled_at: string; attendance_percentage: number; course: StudentCourse }
+
+export function fetchStudentCourses() {
+  return axiosInstance.get<{ data: StudentEnrollment[] }>(API_ROUTES.STUDENT.COURSES).then((r) => r.data.data)
+}
+export function fetchStudentCourse(id: number) {
+  return axiosInstance.get<{ data: StudentEnrollment }>(API_ROUTES.STUDENT.COURSE(id)).then((r) => r.data.data)
+}
+export function joinStudentLecture(id: number) { return axiosInstance.post<{ data: { meeting_url: string | null } }>(API_ROUTES.STUDENT.JOIN_LECTURE(id)).then((r) => r.data.data) }
+export function heartbeatStudentLecture(id: number) { return axiosInstance.post(API_ROUTES.STUDENT.HEARTBEAT(id)) }
+export function leaveStudentLecture(id: number) { return axiosInstance.post(API_ROUTES.STUDENT.LEAVE(id)) }

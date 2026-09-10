@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\CourseLecture;
 use App\Models\CourseLesson;
 use App\Models\CourseWorkshop;
+use App\Models\User;
 use App\Services\CloudinaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TeacherCoursesController extends Controller
 {
@@ -21,10 +24,107 @@ class TeacherCoursesController extends Controller
         return CourseResource::collection($this->ownedCourses($request)->latest()->paginate(15));
     }
 
+    public function featuredStudents(Request $request): JsonResponse
+    {
+        $students = User::role('Student')
+            ->where('status', 'active')
+            ->whereHas('courseEnrollments', fn ($query) => $query->whereIn('course_id', $this->ownedCourses($request)->select('id')))
+            ->when($request->boolean('featured_only'), fn ($query) => $query->whereHas(
+                'highlightedByTeachers',
+                fn ($highlightQuery) => $highlightQuery->where('teacher_id', $request->user()->id),
+            ))
+            ->orderBy('name')
+            ->get(['users.id', 'users.name', 'users.specialty', 'users.avatar_url']);
+
+        $featuredStudentIds = DB::table('teacher_student_highlights')
+            ->where('teacher_id', $request->user()->id)
+            ->whereIn('student_id', $students->pluck('id'))
+            ->pluck('student_id')
+            ->all();
+
+        $students->each(fn (User $student) => $student->setAttribute('is_featured', in_array($student->id, $featuredStudentIds, true)));
+
+        return response()->json(['data' => $students]);
+    }
+
+    public function publicFeaturedStudents(): JsonResponse
+    {
+        $students = User::role('Student')
+            ->where('users.status', 'active')
+            ->whereHas('highlightedByTeachers')
+            ->whereHas('courseEnrollments', fn ($query) => $query->whereIn('status', ['active', 'completed']))
+            ->select(['users.id', 'users.name', 'users.specialty', 'users.avatar_url'])
+            ->distinct()
+            ->orderBy('users.name')
+            ->get()
+            ->each(fn (User $student) => $student->setAttribute('is_featured', true));
+
+        return response()->json(['data' => $students]);
+    }
+
+    public function setStudentFeatured(Request $request, User $student): JsonResponse
+    {
+        abort_unless($student->hasRole('Student') && $student->status === 'active', 404);
+
+        abort_unless(
+            CourseEnrollment::query()
+                ->where('student_id', $student->id)
+                ->whereIn('course_id', $this->ownedCourses($request)->select('id'))
+                ->exists(),
+            404,
+            'الطالب غير مسجل في أحد كورساتك.'
+        );
+
+        $data = $request->validate(['is_featured' => ['required', 'boolean']]);
+        $highlight = DB::table('teacher_student_highlights')
+            ->where('teacher_id', $request->user()->id)
+            ->where('student_id', $student->id);
+
+        if ($data['is_featured']) {
+            $highlight->updateOrInsert(
+                ['teacher_id' => $request->user()->id, 'student_id' => $student->id],
+                ['created_at' => now(), 'updated_at' => now()],
+            );
+        } else {
+            $highlight->delete();
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'specialty' => $student->specialty,
+                'avatar_url' => $student->avatar_url,
+                'is_featured' => $data['is_featured'],
+            ],
+            'message' => $data['is_featured'] ? 'تم تمييز الطالب.' : 'تم إلغاء تمييز الطالب.',
+        ]);
+    }
+
     public function show(Request $request, Course $course): CourseResource
     {
         $this->authorizeCourse($request, $course);
         return new CourseResource($course->load(['category', 'instructor', 'lessons', 'workshops', 'lectures'])->loadCount(['enrollments', 'lessons', 'workshops', 'lectures']));
+    }
+
+    public function enrollments(Request $request, Course $course): JsonResponse
+    {
+        $this->authorizeCourse($request, $course);
+
+        $enrollments = $course->enrollments()
+            ->with('student:id,name,email,avatar_url,academic_id,specialty')
+            ->latest('enrolled_at')
+            ->get();
+        $featuredStudentIds = DB::table('teacher_student_highlights')
+            ->where('teacher_id', $request->user()->id)
+            ->whereIn('student_id', $enrollments->pluck('student_id'))
+            ->pluck('student_id')
+            ->all();
+        $enrollments->each(fn ($enrollment) => $enrollment->setAttribute('is_featured', in_array($enrollment->student_id, $featuredStudentIds, true)));
+
+        return response()->json([
+            'data' => $enrollments,
+        ]);
     }
 
     public function uploadMedia(Request $request, Course $course): CourseResource

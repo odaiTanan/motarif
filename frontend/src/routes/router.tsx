@@ -2,7 +2,6 @@ import { createBrowserRouter } from "react-router-dom";
 
 import AppLayout from "../components/AppLayout";
 import DashboardLayout from "../components/layout/DashboardLayout";
-import Home from "../pages/Home";
 import DashboardPage from "../pages/DashboardPage";
 import ForbiddenPage from "../pages/ForbiddenPage";
 import LoginPage from "../pages/LoginPage";
@@ -13,6 +12,7 @@ import StudentsPage from "../pages/dashboard/StudentsPage";
 import TeachersPage from "../pages/dashboard/TeachersPage";
 import CoursesPage from "../pages/dashboard/CoursesPage";
 import TeacherCoursesPage from "../pages/dashboard/TeacherCoursesPage";
+import StudentCoursesPage from "../pages/dashboard/StudentCoursesPage";
 import { Authorize } from "./Authorize";
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -112,6 +112,18 @@ export const router = createBrowserRouter([
             <DashboardLayout>
               <Authorize allowedRoles={["Teacher"]}>
                 <TeacherCoursesPage />
+              </Authorize>
+            </DashboardLayout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard/student-courses",
+        element: (
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Authorize allowedRoles={["Student"]}>
+                <StudentCoursesPage />
               </Authorize>
             </DashboardLayout>
           </ProtectedRoute>

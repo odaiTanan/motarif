@@ -22,11 +22,20 @@ export const API_ROUTES = {
   TEACHER: {
     COURSES: '/teacher/courses',
     COURSE: (courseId: number) => `/teacher/courses/${courseId}`,
+    ENROLLMENTS: (courseId: number) => `/teacher/courses/${courseId}/enrollments`,
+    STUDENT_FEATURED: (studentId: number) => `/teacher/students/${studentId}/featured`,
     MEDIA: (courseId: number) => `/teacher/courses/${courseId}/media`,
     CONTENT_MEDIA: (courseId: number, type: string, contentId: number) => `/teacher/courses/${courseId}/${type}/${contentId}/media`,
     LESSONS: (courseId: number) => `/teacher/courses/${courseId}/lessons`,
     WORKSHOPS: (courseId: number) => `/teacher/courses/${courseId}/workshops`,
     LECTURES: (courseId: number) => `/teacher/courses/${courseId}/lectures`,
+  },
+  STUDENT: {
+    COURSES: '/student/courses',
+    COURSE: (courseId: number) => `/student/courses/${courseId}`,
+    JOIN_LECTURE: (lectureId: number) => `/student/lectures/${lectureId}/join`,
+    HEARTBEAT: (lectureId: number) => `/student/lectures/${lectureId}/heartbeat`,
+    LEAVE: (lectureId: number) => `/student/lectures/${lectureId}/leave`,
   },
   ASSESSMENTS: {
     BY_ID: (assessmentId: number) => `/assessments/${assessmentId}`,
@@ -37,5 +46,6 @@ export const API_ROUTES = {
   },
   DASHBOARD: {
     INDEX: '/dashboard',
+    STATS: '/dashboard/stats',
   },
 } as const
