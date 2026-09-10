@@ -7,6 +7,7 @@ use App\Http\Resources\CourseResource;
 use App\Models\Course;
 use App\Models\CourseCategory;
 use App\Models\User;
+use App\Models\CourseEnrollment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,24 @@ class CoursesController extends Controller
     public function index(): mixed
     {
         return CourseResource::collection(Course::query()->with(['category', 'instructor'])->withCount('enrollments')->latest()->paginate(15));
+    }
+
+    public function available(Request $request): mixed
+    {
+        $query = Course::query()
+            ->where('status', 'published')
+            ->with(['category', 'instructor'])
+            ->withCount('enrollments');
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->integer('category_id'));
+        }
+
+        if ($request->filled('category')) {
+            $query->whereHas('category', fn ($categoryQuery) => $categoryQuery->where('slug', $request->string('category')));
+        }
+
+        return CourseResource::collection($query->latest()->paginate($request->integer('per_page', 15)));
     }
 
     public function categories(): JsonResponse
@@ -67,6 +86,43 @@ class CoursesController extends Controller
         return new CourseResource($course->fresh()->load(['category', 'instructor'])->loadCount('enrollments'));
     }
 
+    public function enrollments(Course $course): JsonResponse
+    {
+        return response()->json([
+            'data' => $course->enrollments()->with('student:id,name,email,avatar_url,academic_id')->latest('enrolled_at')->get(),
+        ]);
+    }
+
+    public function enrollStudent(Request $request, Course $course): JsonResponse
+    {
+        $data = $request->validate(['student_id' => ['required', 'integer', 'exists:users,id']]);
+        $student = User::role('Student')->whereKey($data['student_id'])->where('status', 'active')->firstOrFail();
+
+        if ($course->max_students && $course->enrollments()->where('status', 'active')->count() >= $course->max_students) {
+            return response()->json(['message' => 'تم الوصول إلى الحد الأقصى لطلاب الكورس.'], 422);
+        }
+
+        $enrollment = CourseEnrollment::query()->firstOrCreate(
+            ['course_id' => $course->id, 'student_id' => $student->id],
+            ['status' => 'active', 'completion_percentage' => 0],
+        );
+
+        if ($enrollment->status !== 'active') {
+            $enrollment->update(['status' => 'active', 'enrolled_at' => now()]);
+        }
+
+        return response()->json(['data' => $enrollment->fresh()->load('student:id,name,email,avatar_url,academic_id'), 'message' => 'تم إسناد الطالب للكورس.'], 201);
+    }
+
+    public function unenrollStudent(Course $course, User $user): JsonResponse
+    {
+        abort_unless($user->hasRole('Student'), 404);
+        $enrollment = $course->enrollments()->where('student_id', $user->id)->firstOrFail();
+        $enrollment->delete();
+
+        return response()->json(['message' => 'تم إلغاء إسناد الطالب.']);
+    }
+
     private function validated(Request $request, bool $partial = false): array
     {
         $required = $partial ? 'sometimes' : 'required';
@@ -79,7 +135,6 @@ class CoursesController extends Controller
             'level' => ['sometimes', 'in:beginner,intermediate,advanced'],
             'max_students' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'price' => ['sometimes', 'numeric', 'min:0'],
-            'thumbnail_url' => ['sometimes', 'nullable', 'url', 'max:2048'],
             'course_type' => ['sometimes', 'in:technical,craft'],
         ]);
 

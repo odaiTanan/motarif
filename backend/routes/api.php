@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\UsersController;
 use App\Http\Controllers\Api\CoursesController;
 use App\Http\Controllers\Api\CourseCategoriesController;
 use App\Http\Controllers\Api\TeacherCoursesController;
+use App\Http\Controllers\Api\StudentCoursesController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function (): void {
@@ -37,9 +38,15 @@ Route::middleware(['auth:sanctum', 'permission:manage-content'])->prefix('dashbo
     Route::put('courses/{course}', 'update');
     Route::delete('courses/{course}', 'destroy');
     Route::post('courses/{course}/media', 'uploadMedia');
+    Route::get('courses/{course}/enrollments', 'enrollments');
+    Route::post('courses/{course}/enrollments', 'enrollStudent');
+    Route::delete('courses/{course}/enrollments/{user}', 'unenrollStudent');
     Route::get('course-categories', 'categories');
     Route::get('course-instructors', 'instructors');
 });
+
+Route::get('courses', [CoursesController::class, 'available']);
+Route::get('featured-students', [TeacherCoursesController::class, 'publicFeaturedStudents']);
 
 Route::middleware(['auth:sanctum', 'permission:manage-content'])->prefix('dashboard/course-categories')->controller(CourseCategoriesController::class)->group(function (): void {
     Route::get('/', 'index');
@@ -51,7 +58,10 @@ Route::middleware(['auth:sanctum', 'permission:manage-content'])->prefix('dashbo
 
 Route::middleware(['auth:sanctum', 'role:Teacher'])->prefix('teacher')->controller(TeacherCoursesController::class)->group(function (): void {
     Route::get('courses', 'index');
+    Route::get('featured-students', 'featuredStudents');
+    Route::put('students/{student}/featured', 'setStudentFeatured');
     Route::get('courses/{course}', 'show');
+    Route::get('courses/{course}/enrollments', 'enrollments');
     Route::post('courses/{course}/media', 'uploadMedia');
     Route::post('courses/{course}/{contentType}/{content}/media', 'uploadContentMedia');
     Route::post('courses/{course}/lessons', 'storeLesson');
@@ -63,4 +73,12 @@ Route::middleware(['auth:sanctum', 'role:Teacher'])->prefix('teacher')->controll
     Route::post('courses/{course}/lectures', 'storeLecture');
     Route::put('courses/{course}/lectures/{lecture}', 'updateLecture');
     Route::delete('courses/{course}/lectures/{lecture}', 'destroyLecture');
+});
+
+Route::middleware(['auth:sanctum', 'role:Student'])->prefix('student')->controller(StudentCoursesController::class)->group(function (): void {
+    Route::get('courses', 'index');
+    Route::get('courses/{course}', 'show');
+    Route::post('lectures/{lecture}/join', 'joinLecture');
+    Route::post('lectures/{lecture}/heartbeat', 'heartbeat');
+    Route::post('lectures/{lecture}/leave', 'leaveLecture');
 });

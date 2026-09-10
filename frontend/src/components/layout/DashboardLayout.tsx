@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div
-              className="absolute inset-0 bg-ink-950/60 backdrop-blur-sm animate-fade-in"
+              className="absolute inset-0 bg-slate-900/50 animate-fade-in"
               onClick={() => setMobileOpen(false)}
             />
             <div className="absolute right-0 top-0 h-full animate-scale-in">
@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute left-4 top-4 rounded-xl bg-white/10 p-2 text-white"
+              className="absolute left-4 top-4 rounded-xl border border-slate-200 bg-white p-2 text-slate-700 shadow-lg"
             >
               <X size={20} />
             </button>
@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-sm font-semibold text-ink-900">{user?.name ?? 'زائر'}</p>
                   <p className="text-xs text-ink-400">{user?.email}</p>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-academy-400 to-academy-600 text-sm font-bold text-white shadow-lg shadow-academy-500/20">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-sm font-bold text-white shadow-lg shadow-blue-600/20">
                   {user?.name?.charAt(0) ?? '؟'}
                 </div>
               </div>

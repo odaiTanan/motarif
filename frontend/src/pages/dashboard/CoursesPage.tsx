@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Pencil, Trash2, BookOpen, Layers, X } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, BookOpen, Layers, X, UserPlus, UserMinus, Users } from 'lucide-react'
 
-import { createCourse, createCourseCategory, deleteCourse, deleteCourseCategory, fetchCourseCategories, fetchCourseInstructors, fetchCourses, updateCourse, updateCourseCategory, type CourseRecord } from '../../api/management'
+import { createCourse, createCourseCategory, deleteCourse, deleteCourseCategory, enrollStudent, fetchCourseCategories, fetchCourseEnrollments, fetchCourseInstructors, fetchCourses, unenrollStudent, updateCourse, updateCourseCategory, uploadCourseCategoryImage, uploadCourseThumbnail, type CourseEnrollmentRecord, type CourseRecord } from '../../api/management'
+import { fetchUsers, type User } from '../../api/users'
 
 type CourseForm = {
   title: string
@@ -14,7 +15,40 @@ type CourseForm = {
   max_students: string
   price: string
   thumbnail_url: string
+  thumbnail_file: File | null
   course_type: CourseRecord['course_type']
+}
+
+function EnrollmentPanel({ course, students, enrollments, loading, saving, onClose, onEnroll, onUnenroll }: { course: CourseRecord; students: User[]; enrollments: CourseEnrollmentRecord[]; loading: boolean; saving: boolean; onClose: () => void; onEnroll: (studentId: number) => void; onUnenroll: (studentId: number) => void }) {
+  const [studentId, setStudentId] = useState('')
+  const assignedIds = new Set(enrollments.filter((enrollment) => enrollment.status === 'active').map((enrollment) => enrollment.student_id))
+  const availableStudents = students.filter((student) => !assignedIds.has(student.id))
+
+  return (
+    <section className="rounded-3xl border border-blue-200 bg-blue-50/40 p-6 shadow-sm animate-scale-in">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-blue-700">إسناد الطلاب</p>
+          <h2 className="mt-1 text-xl font-bold text-ink-900">طلاب {course.title}</h2>
+          <p className="mt-1 text-sm text-ink-500">{enrollments.length} طالب مسجل{course.max_students ? ` من ${course.max_students}` : ''}</p>
+        </div>
+        <button type="button" onClick={onClose} className="rounded-xl p-2 text-ink-400 hover:bg-white"><X size={18} /></button>
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <select value={studentId} onChange={(event) => setStudentId(event.target.value)} disabled={loading || saving || availableStudents.length === 0} className="flex-1 rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm outline-none focus-ring">
+          <option value="">{loading ? 'جاري تحميل الطلاب...' : availableStudents.length ? 'اختر طالبًا لإسناده' : 'لا يوجد طلاب متاحون للإسناد'}</option>
+          {availableStudents.map((student) => <option key={student.id} value={student.id}>{student.name} - {student.email}</option>)}
+        </select>
+        <button type="button" disabled={!studentId || saving} onClick={() => { onEnroll(Number(studentId)); setStudentId('') }} className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"><UserPlus size={16} /> إسناد الطالب</button>
+      </div>
+
+      <div className="mt-5 space-y-2">
+        {enrollments.map((enrollment) => <div key={enrollment.id} className="flex items-center justify-between gap-3 rounded-2xl border border-ink-100 bg-white p-3"><div className="flex min-w-0 items-center gap-3"><img src={enrollment.student.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(enrollment.student.name)}&background=e2e8f0&color=334155`} alt="" className="h-9 w-9 rounded-full object-cover" /><div className="min-w-0"><p className="truncate text-sm font-semibold text-ink-900">{enrollment.student.name}</p><p className="truncate text-xs text-ink-400">{enrollment.student.email}</p></div></div><button type="button" disabled={saving} onClick={() => onUnenroll(enrollment.student_id)} className="flex shrink-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"><UserMinus size={14} /> إلغاء الإسناد</button></div>)}
+        {!loading && enrollments.length === 0 && <p className="rounded-2xl border border-dashed border-ink-200 bg-white p-8 text-center text-sm text-ink-400">لم يتم إسناد طلاب لهذا الكورس بعد.</p>}
+      </div>
+    </section>
+  )
 }
 
 const emptyForm: CourseForm = {
@@ -27,6 +61,7 @@ const emptyForm: CourseForm = {
   max_students: '',
   price: '0',
   thumbnail_url: '',
+  thumbnail_file: null,
   course_type: 'technical',
 }
 
@@ -48,6 +83,8 @@ export default function CoursesPage() {
   const [categoryName, setCategoryName] = useState('')
   const [categoryDescription, setCategoryDescription] = useState('')
   const [editingCategory, setEditingCategory] = useState<number | null>(null)
+  const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null)
+  const [enrollmentCourse, setEnrollmentCourse] = useState<CourseRecord | null>(null)
 
   const coursesQuery = useQuery({ queryKey: ['courses'], queryFn: fetchCourses })
   const categoriesQuery = useQuery({ queryKey: ['course-categories'], queryFn: fetchCourseCategories })
@@ -56,26 +93,24 @@ export default function CoursesPage() {
     queryFn: () => fetchCourseInstructors(Number(form.category_id)),
     enabled: Boolean(form.category_id),
   })
+  const studentsQuery = useQuery({ queryKey: ['course-students'], queryFn: () => fetchUsers('student') })
+  const enrollmentsQuery = useQuery({ queryKey: ['course-enrollments', enrollmentCourse?.id], queryFn: () => fetchCourseEnrollments(enrollmentCourse!.id), enabled: Boolean(enrollmentCourse) })
 
   const closeForm = () => { setFormOpen(false); setEditing(null); setForm(emptyForm) }
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      editing
-        ? updateCourse(editing.id, {
-            ...form,
-            category_id: Number(form.category_id),
-            instructor_id: Number(form.instructor_id),
-            max_students: form.max_students ? Number(form.max_students) : null,
-            price: Number(form.price),
-          })
-        : createCourse({
-            ...form,
-            category_id: Number(form.category_id),
-            instructor_id: Number(form.instructor_id),
-            max_students: form.max_students ? Number(form.max_students) : null,
-            price: Number(form.price),
-          }),
+    mutationFn: async () => {
+      const { thumbnail_file, thumbnail_url: _thumbnailUrl, ...courseFields } = form
+      const payload = {
+        ...courseFields,
+        category_id: Number(form.category_id),
+        instructor_id: Number(form.instructor_id),
+        max_students: form.max_students ? Number(form.max_students) : null,
+        price: Number(form.price),
+      }
+      const savedCourse = editing ? await updateCourse(editing.id, payload) : await createCourse(payload)
+      return thumbnail_file ? uploadCourseThumbnail(savedCourse.id, thumbnail_file) : savedCourse
+    },
     onSuccess: () => { closeForm(); queryClient.invalidateQueries({ queryKey: ['courses'] }) },
   })
 
@@ -85,14 +120,17 @@ export default function CoursesPage() {
       editingCategory
         ? updateCourseCategory(editingCategory, { name: categoryName, description: categoryDescription })
         : createCourseCategory({ name: categoryName, description: categoryDescription }),
-    onSuccess: () => {
-      setCategoryName(''); setCategoryDescription(''); setEditingCategory(null)
+    onSuccess: async (category) => {
+      if (categoryImageFile) await uploadCourseCategoryImage(category.id, categoryImageFile)
+      setCategoryName(''); setCategoryDescription(''); setEditingCategory(null); setCategoryImageFile(null)
       queryClient.invalidateQueries({ queryKey: ['course-categories'] })
     },
   })
   const deleteCategoryMutation = useMutation({ mutationFn: deleteCourseCategory, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['course-categories'] }) })
+  const enrollMutation = useMutation({ mutationFn: ({ courseId, studentId }: { courseId: number; studentId: number }) => enrollStudent(courseId, studentId), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['course-enrollments', enrollmentCourse?.id] }); queryClient.invalidateQueries({ queryKey: ['courses'] }) } })
+  const unenrollMutation = useMutation({ mutationFn: ({ courseId, studentId }: { courseId: number; studentId: number }) => unenrollStudent(courseId, studentId), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['course-enrollments', enrollmentCourse?.id] }); queryClient.invalidateQueries({ queryKey: ['courses'] }) } })
 
-  const updateField = (field: keyof CourseForm, value: string) => setForm((current) => ({ ...current, [field]: value }))
+  const updateField = (field: keyof CourseForm, value: string | File | null) => setForm((current) => ({ ...current, [field]: value }))
   const openCreate = () => { setEditing(null); setForm(emptyForm); setFormOpen(true) }
   const openEdit = (course: CourseRecord) => {
     setEditing(course)
@@ -106,6 +144,7 @@ export default function CoursesPage() {
       max_students: course.max_students ? String(course.max_students) : '',
       price: String(course.price),
       thumbnail_url: course.thumbnail_url ?? '',
+      thumbnail_file: null,
       course_type: course.course_type,
     })
     setFormOpen(true)
@@ -197,7 +236,10 @@ export default function CoursesPage() {
 
           <input type="number" min="1" value={form.max_students} onChange={(event) => updateField('max_students', event.target.value)} placeholder="الحد الأقصى للطلاب" className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring" />
           <input type="number" min="0" step="0.01" value={form.price} onChange={(event) => updateField('price', event.target.value)} placeholder="السعر" className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring" />
-          <input type="url" value={form.thumbnail_url} onChange={(event) => updateField('thumbnail_url', event.target.value)} placeholder="رابط الصورة المصغرة" className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring md:col-span-2" />
+          <label className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-ink-300 bg-ink-50 px-4 py-3 text-sm text-ink-600 md:col-span-2">
+            <span>{form.thumbnail_file?.name ?? (form.thumbnail_url ? 'تغيير صورة الكورس' : 'رفع صورة الكورس')}</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => updateField('thumbnail_file', event.target.files?.[0] ?? null)} />
+          </label>
 
           {editing && (
             <select value={form.status} onChange={(event) => updateField('status', event.target.value)} className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring">
@@ -262,6 +304,9 @@ export default function CoursesPage() {
                   <td className="px-5 py-4 text-sm font-semibold text-ink-800">{Number(course.price).toFixed(2)} ر.س</td>
                   <td className="px-5 py-4">
                     <div className="flex gap-2">
+                      <button onClick={() => setEnrollmentCourse(course)} className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-50">
+                        <Users size={14} /> الطلاب
+                      </button>
                       <button onClick={() => openEdit(course)} className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-50">
                         <Pencil size={14} /> تعديل
                       </button>
@@ -282,6 +327,19 @@ export default function CoursesPage() {
         {courses.length === 0 && <p className="p-12 text-center text-ink-400">لا توجد كورسات</p>}
       </section>
 
+      {enrollmentCourse && (
+        <EnrollmentPanel
+          course={enrollmentCourse}
+          students={studentsQuery.data ?? []}
+          enrollments={enrollmentsQuery.data ?? []}
+          loading={studentsQuery.isLoading || enrollmentsQuery.isLoading}
+          saving={enrollMutation.isPending || unenrollMutation.isPending}
+          onClose={() => setEnrollmentCourse(null)}
+          onEnroll={(studentId) => enrollMutation.mutate({ courseId: enrollmentCourse.id, studentId })}
+          onUnenroll={(studentId) => unenrollMutation.mutate({ courseId: enrollmentCourse.id, studentId })}
+        />
+      )}
+
       {/* Categories section */}
       <section className="rounded-3xl border border-ink-200/60 bg-white p-6 shadow-sm animate-fade-in-up stagger-3">
         <div className="mb-5 flex items-center justify-between">
@@ -297,9 +355,10 @@ export default function CoursesPage() {
           <span className="text-sm font-medium text-ink-400">{categories.length} تصنيف</span>
         </div>
 
-        <form onSubmit={(event) => { event.preventDefault(); categoryMutation.mutate() }} className="mb-6 grid gap-3 md:grid-cols-[1fr_2fr_auto]">
+        <form onSubmit={(event) => { event.preventDefault(); categoryMutation.mutate() }} className="mb-6 grid gap-3 md:grid-cols-[1fr_2fr_1fr_auto]">
           <input required value={categoryName} onChange={(event) => setCategoryName(event.target.value)} placeholder="اسم التصنيف" className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring" />
           <input value={categoryDescription} onChange={(event) => setCategoryDescription(event.target.value)} placeholder="وصف التصنيف" className="rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 text-sm outline-none focus-ring" />
+          <label className="flex cursor-pointer items-center rounded-xl border border-dashed border-ink-300 bg-ink-50 px-4 py-3 text-sm text-ink-600"><span className="truncate">{categoryImageFile?.name ?? 'رفع صورة التصنيف'}</span><input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => setCategoryImageFile(event.target.files?.[0] ?? null)} /></label>
           <button disabled={categoryMutation.isPending} className="rounded-xl bg-ink-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink-800 disabled:opacity-50">
             {editingCategory ? 'تحديث' : 'إضافة'}
           </button>
