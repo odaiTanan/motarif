@@ -1,23 +1,34 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, GraduationCap, Users, TrendingUp, ArrowLeft, ClipboardList, Layers, FileCheck } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { BookOpen, GraduationCap, Users, TrendingUp, ArrowLeft, ClipboardList, Layers, FileCheck, CalendarClock, UserRoundCheck } from 'lucide-react'
 
 import { useAuth } from '../hooks/useAuth'
+import { fetchDashboardStats, type DashboardStat } from '../api/management'
 
-const stats = [
-  { label: 'الكورسات', value: '—', icon: BookOpen, bg: 'bg-blue-50', text: 'text-blue-700' },
-  { label: 'الطلاب', value: '—', icon: GraduationCap, bg: 'bg-blue-50', text: 'text-blue-700' },
-  { label: 'المدرسين', value: '—', icon: Users, bg: 'bg-ink-100', text: 'text-ink-700' },
-  { label: 'النشاط', value: '—', icon: TrendingUp, bg: 'bg-blue-50', text: 'text-blue-700' },
-]
+const statIcons = { courses: BookOpen, students: GraduationCap, teachers: Users, enrollments: TrendingUp, upcoming: CalendarClock, active: TrendingUp, completed: UserRoundCheck, progress: TrendingUp }
 
-const quickActions = [
-  { label: 'بنك الأسئلة', href: '/dashboard/questions', desc: 'إضافة الأسئلة والخيارات', icon: ClipboardList },
-  { label: 'إدارة المحتوى', href: '/dashboard/academies', desc: 'إدارة الأقسام والدورات', icon: Layers },
-  { label: 'الاختبارات', href: '/dashboard/assessments', desc: 'إنشاء وبدء الاختبارات', icon: FileCheck },
-]
+const actionsByRole = {
+  admin: [
+    { label: 'بنك الأسئلة', href: '/dashboard/questions', desc: 'إضافة الأسئلة والخيارات', icon: ClipboardList },
+    { label: 'إدارة المحتوى', href: '/dashboard/academies', desc: 'إدارة الأقسام والدورات', icon: Layers },
+    { label: 'الاختبارات', href: '/dashboard/assessments', desc: 'إنشاء وبدء الاختبارات', icon: FileCheck },
+  ],
+  teacher: [
+    { label: 'كورساتي', href: '/dashboard/my-courses', desc: 'إدارة محتوى الكورسات', icon: BookOpen },
+    { label: 'الطلاب المميزون', href: '/dashboard/my-courses', desc: 'متابعة طلاب كورساتك', icon: GraduationCap },
+  ],
+  student: [
+    { label: 'كورساتي', href: '/dashboard/student-courses', desc: 'متابعة التعلم والتقدم', icon: BookOpen },
+    { label: 'الاختبارات', href: '/dashboard/assessments', desc: 'عرض الاختبارات المتاحة', icon: FileCheck },
+  ],
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const statsQuery = useQuery({ queryKey: ['dashboard-stats'], queryFn: fetchDashboardStats })
+  const role = statsQuery.data?.role ?? (user?.roles?.some((item) => item.name.toLowerCase() === 'teacher') ? 'teacher' : user?.roles?.some((item) => item.name.toLowerCase() === 'student') ? 'student' : 'admin')
+  const quickActions = actionsByRole[role]
+  const stats: DashboardStat[] = statsQuery.data?.stats ?? []
 
   return (
     <main className="space-y-6">
@@ -34,7 +45,7 @@ export default function DashboardPage() {
               مرحباً، {user?.name ?? 'مستخدم'}
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-300 sm:text-base">
-              من هنا تدير المحتوى، تضيف البيانات وتتحكّم بها، وتنشئ الاختبارات وتنشرها للمستخدمين.
+              {role === 'admin' ? 'نظرة عامة على المستخدمين والمحتوى والتسجيلات في المنصة.' : role === 'teacher' ? 'تابع أداء كورساتك وعدد الطلاب والمحاضرات القادمة.' : 'تابع كورساتك النشطة ونسبة تقدمك التعليمية.'}
             </p>
 
             {/* Quick actions */}
@@ -92,10 +103,12 @@ export default function DashboardPage() {
         </aside>
       </section>
 
+      {statsQuery.isError && <p className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">تعذر تحميل الإحصاءات حاليًا.</p>}
+
       {/* Stat cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, i) => {
-          const Icon = stat.icon
+          const Icon = statIcons[stat.key as keyof typeof statIcons] ?? TrendingUp
           return (
             <div
               key={stat.label}
@@ -108,6 +121,7 @@ export default function DashboardPage() {
                 <span className="text-2xl font-bold text-ink-900">{stat.value}</span>
               </div>
               <p className="mt-3 text-sm font-medium text-ink-500">{stat.label}</p>
+              <p className="mt-1 text-xs text-ink-400">{stat.description}</p>
             </div>
           )
         })}

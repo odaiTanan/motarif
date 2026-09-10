@@ -46,5 +46,6 @@ export const API_ROUTES = {
   },
   DASHBOARD: {
     INDEX: '/dashboard',
+    STATS: '/dashboard/stats',
   },
 } as const

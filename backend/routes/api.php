@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CoursesController;
 use App\Http\Controllers\Api\CourseCategoriesController;
 use App\Http\Controllers\Api\TeacherCoursesController;
 use App\Http\Controllers\Api\StudentCoursesController;
+use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function (): void {
@@ -21,6 +22,8 @@ Route::middleware(['auth:sanctum', 'permission:view-dashboard'])->get('dashboard
         'message' => 'تم تحميل بيانات لوحة التحكم بنجاح.',
     ]);
 });
+
+Route::middleware(['auth:sanctum', 'permission:view-dashboard'])->get('dashboard/stats', [DashboardController::class, 'stats']);
 
 Route::middleware(['auth:sanctum', 'permission:manage-users'])->prefix('users')->controller(UsersController::class)->group(function (): void {
     Route::get('/', 'index');

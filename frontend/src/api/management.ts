@@ -336,6 +336,13 @@ export function fetchLookups() {
   return axiosInstance.get<LookupsResponse>(API_ROUTES.MANAGEMENT.LOOKUPS).then((r) => r.data)
 }
 
+export interface DashboardStat { key: string; label: string; value: number | string; description: string }
+export interface DashboardStatsResponse { role: 'admin' | 'teacher' | 'student'; stats: DashboardStat[] }
+
+export function fetchDashboardStats() {
+  return axiosInstance.get<{ data: DashboardStatsResponse }>(API_ROUTES.DASHBOARD.STATS).then((r) => r.data.data)
+}
+
 export function fetchTeacherCourses() {
   return fetchPaginated<CourseRecord>(API_ROUTES.TEACHER.COURSES)
 }
