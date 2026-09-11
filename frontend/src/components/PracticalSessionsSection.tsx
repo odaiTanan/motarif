@@ -1,98 +1,205 @@
 import React from "react";
-import { MapPin, Calendar, Users, Video } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  Users,
+  Video,
+  Sparkles,
+  ArrowLeft,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 export const PracticalSessionsSection = () => {
+  const sessions = [
+    {
+      id: 1,
+      title: "تطبيق عملي: صيانة الشاشات",
+      type: "ميداني",
+      location: "ورشة المركز الميداني - القاعة B",
+      time: "السبت - 10:00 صباحاً",
+      seatsLeft: 5,
+      totalSeats: 15,
+      isOnline: false,
+      accentColor: "from-amber-500 to-orange-500",
+      badgeStyle: "bg-amber-50 text-amber-600 border-amber-500/20",
+      borderGlow: "hover:border-amber-500/50",
+    },
+    {
+      id: 2,
+      title: "تطبيق قصات الشعر والتصفيف",
+      type: "ميداني",
+      location: "صالون التدريب المعتمد",
+      time: "الأحد - 02:00 ظهراً",
+      seatsLeft: 3,
+      totalSeats: 12,
+      isOnline: false,
+      accentColor: "from-emerald-500 to-teal-500",
+      badgeStyle: "bg-emerald-50 text-emerald-600 border-emerald-500/20",
+      borderGlow: "hover:border-emerald-500/50",
+    },
+    {
+      id: 3,
+      title: "جلسة ربط المشروع بـ Laravel API",
+      type: "تفاعلي أونلاين",
+      location: "رابط Google Meet المباشر",
+      time: "الجمعة - 05:00 مساءً",
+      seatsLeft: null, // مفتوح
+      totalSeats: null,
+      isOnline: true,
+      accentColor: "from-blue-500 to-indigo-500",
+      badgeStyle: "bg-blue-50 text-blue-600 border-blue-500/20",
+      borderGlow: "hover:border-blue-500/50",
+    },
+  ];
+
   return (
     <section
       id="practical"
-      className="border-b border-slate-800 py-20 bg-[#0b132b]/30"
+      dir="rtl"
+      className="relative overflow-hidden border-b border-ink-200/60 bg-white py-20 lg:py-28 text-ink-900"
     >
-      <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-2xl text-center mb-12">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            نظام الجدولة المكانية والزمانية
-          </span>
-          <h2 className="text-3xl font-bold text-slate-100 mt-1">
-            التدريبات الميدانية القادمة
-          </h2>
-          <p className="mt-2 text-slate-400">
-            جلسات وورشات عمل مباشرة يتم تحديد مكانها وموعدها من المحاضرين
-          </p>
+      {/* خلفية شبكية ناعمة متوافقة مع الثيم الفاتح */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none" />
+
+      {/* خلفية إضاءة ناعمة وخفيفة */}
+      <div className="absolute top-1/2 right-1/4 -z-10 h-96 w-96 rounded-full bg-cyan-500/5 blur-[140px] pointer-events-none" />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-12">
+        {/* الهيدر العلوي */}
+        <div className="mx-auto max-w-3xl text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-50 px-3.5 py-1 text-xs font-semibold text-blue-600 backdrop-blur-md mb-4 shadow-sm"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+            <span>نظام الجدولة المكانية والزمانية</span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-ink-900 leading-tight"
+          >
+            التدريبات الميدانية{" "}
+            <span className="text-blue-600">والجلسات القادمة</span>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-3 text-sm sm:text-base text-ink-500 max-w-xl mx-auto leading-relaxed"
+          >
+            جلسات وورشات عمل مباشرة يتم تحديد جدولها الجغرافي والزماني بدقة عبر
+            لوحات تحكم المحاضرين.
+          </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-6 shadow-sm border-r-4 border-r-slate-400">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-slate-100">
-                تطبيق عملي: صيانة الشاشات
-              </h3>
-              <span className="text-xs px-2.5 py-1 rounded bg-slate-700 text-slate-200">
-                ميداني
-              </span>
-            </div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" /> ورشة المركز
-                الميداني - القاعة B
-              </p>
-              <p className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-slate-400" /> السبت - 10:00
-                صباحاً
-              </p>
-              <p className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-slate-400" /> المتبقي: 5 مقاعد
-              </p>
-            </div>
-          </div>
+        {/* شبكة الكروت بالثيم الفاتح */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {sessions.map((session, idx) => {
+            const seatsPercent =
+              session.seatsLeft && session.totalSeats
+                ? ((session.totalSeats - session.seatsLeft) /
+                    session.totalSeats) *
+                  100
+                : 100;
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-6 shadow-sm border-r-4 border-r-slate-400">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-slate-100">
-                تطبيق قصات الشعر والتصفيف
-              </h3>
-              <span className="text-xs px-2.5 py-1 rounded bg-slate-700 text-slate-200">
-                ميداني
-              </span>
-            </div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" /> صالون التدريب
-                المعتمد
-              </p>
-              <p className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-slate-400" /> الأحد - 02:00
-                ظهراً
-              </p>
-              <p className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-slate-400" /> المتبقي: 3 مقاعد
-              </p>
-            </div>
-          </div>
+            return (
+              <motion.div
+                key={session.id}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.15 }}
+                whileHover={{ y: -4 }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-ink-200/60 bg-ink-50 p-7 backdrop-blur-xl transition-all duration-300 hover:bg-white hover:shadow-xl ${session.borderGlow}`}
+              >
+                {/* الخط الجانبي المضيء */}
+                <div
+                  className={`absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${session.accentColor} opacity-75 group-hover:opacity-100 transition-opacity`}
+                />
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-6 shadow-sm border-r-4 border-r-slate-400">
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-slate-100">
-                جلسة ربط المشروع بـ Laravel API
-              </h3>
-              <span className="text-xs px-2.5 py-1 rounded bg-slate-700 text-slate-200">
-                تفاعلي أونلاين
-              </span>
-            </div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <p className="flex items-center gap-2">
-                <Video className="h-4 w-4 text-slate-400" /> رابط Google Meet
-                المباشر
-              </p>
-              <p className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-slate-400" /> الجمعة - 05:00
-                مساءً
-              </p>
-              <p className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-slate-400" /> متاح لكافة طلاب
-                المسار
-              </p>
-            </div>
-          </div>
+                <div>
+                  {/* الرأس: العنوان والشارة */}
+                  <div className="flex justify-between items-start gap-3 mb-5">
+                    <h3 className="font-bold text-lg sm:text-xl text-ink-900 group-hover:text-blue-600 transition-colors leading-snug">
+                      {session.title}
+                    </h3>
+
+                    <span
+                      className={`inline-flex shrink-0 items-center text-[11px] font-bold px-3 py-1 rounded-full border ${session.badgeStyle}`}
+                    >
+                      {session.type}
+                    </span>
+                  </div>
+
+                  {/* التفاصيل المعمارية للجلسة */}
+                  <div className="space-y-3.5 text-xs sm:text-sm text-ink-500 mb-6">
+                    <div className="flex items-center gap-3 text-ink-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-ink-200/60 shrink-0 shadow-sm">
+                        {session.isOnline ? (
+                          <Video className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <MapPin className="h-4 w-4 text-amber-600" />
+                        )}
+                      </div>
+                      <span className="truncate">{session.location}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-ink-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-ink-200/60 shrink-0 shadow-sm">
+                        <Calendar className="h-4 w-4 text-indigo-600" />
+                      </div>
+                      <span>{session.time}</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-ink-700">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-ink-200/60 shrink-0 shadow-sm">
+                        <Users className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <span>
+                        {session.seatsLeft !== null
+                          ? `المتبقي: ${session.seatsLeft} مقاعد فقط`
+                          : "متاح لكافة طلاب المسار"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* شريط المقاعد المتبقية في حال كان ميدانياً */}
+                  {session.seatsLeft !== null && (
+                    <div className="mb-6 space-y-1.5">
+                      <div className="flex justify-between text-[11px] text-ink-500 font-medium">
+                        <span>نسبة الحجز</span>
+                        <span className="text-amber-600 font-bold">
+                          {Math.round(seatsPercent)}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-ink-200/80 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${session.accentColor} transition-all duration-500`}
+                          style={{ width: `${seatsPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* زر الإجراء السفلي */}
+                <div className="pt-4 border-t border-ink-200/60">
+                  <button className="w-full flex items-center justify-center gap-2 rounded-xl border border-ink-200 bg-white py-2.5 text-xs font-bold text-ink-800 transition-all hover:border-blue-600 hover:bg-blue-600 hover:text-white group/btn shadow-sm">
+                    <span>حجز مقعد الجلسة</span>
+                    <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:-translate-x-1" />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

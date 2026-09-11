@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
-
+import CoursesPage from "../pages/dashboard/CoursesPage";
+import Home from "../pages/Home";
 import AppLayout from "../components/AppLayout";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import DashboardPage from "../pages/DashboardPage";
@@ -10,7 +11,6 @@ import TeacherLoginPage from "../pages/TeacherLoginPage";
 import StudentLoginPage from "../pages/StudentLoginPage";
 import StudentsPage from "../pages/dashboard/StudentsPage";
 import TeachersPage from "../pages/dashboard/TeachersPage";
-import CoursesPage from "../pages/dashboard/CoursesPage";
 import TeacherCoursesPage from "../pages/dashboard/TeacherCoursesPage";
 import StudentCoursesPage from "../pages/dashboard/StudentCoursesPage";
 import { Authorize } from "./Authorize";
